@@ -1,0 +1,84 @@
+FROM px4io/px4-dev-base-jammy:latest
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    LANG=en_US.UTF-8 \
+    LC_ALL=en_US.UTF-8
+
+WORKDIR /root
+
+# Update and install tools
+RUN apt-get update && apt-get install -y --no-install-recommends \   
+    git \
+    bash-completion \
+    gedit \
+    locales \
+    software-properties-common \
+    curl \
+    gnupg \
+    lsb-release \
+    python3-pip \
+    wget \
+    nano \
+    && locale-gen en_US en_US.UTF-8 \
+    && update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 \
+    && add-apt-repository universe \
+    && pip install symforce
+
+RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null \
+    && apt-get update \
+    && apt-get upgrade -y \
+    && apt-get install -y --no-install-recommends ros-humble-desktop ros-dev-tools \ 
+    && echo "source /opt/ros/humble/setup.bash" >> .bashrc \
+    && pip install --user -U empy==3.3.4 pyros-genmsg setuptools \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV ROS2_DISTRO=humble
+
+RUN apt update && apt-get install -y --no-install-recommends \ 
+    ros-$ROS2_DISTRO-plotjuggler-ros \
+    ros-$ROS2_DISTRO-rosbag2* \
+    libeigen3-dev \
+    libboost-all-dev \
+    libceres-dev
+
+RUN apt update && apt-get install -y --no-install-recommends \     
+    libcanberra-gtk-module libcanberra-gtk3-module
+
+# # ROS2 workspace
+
+#RUN mkdir -p ~/ros2_ws/src \
+#    && cd ~/ros2_ws/src \
+#    && git clone --single-branch -b release/1.14 https://github.com/PX4/px4_msgs.git \
+#    && git clone --single-branch -b release/v1.14 https://github.com/PX4/px4_ros_com.git \
+#    && git clone https://github.com/Prisma-Drone-Team/ov_republisher.git \
+#    && cd .. \	
+#    && . /opt/ros/humble/setup.sh \
+#    && colcon build
+
+# Additional packages
+RUN apt update && apt install -y --no-install-recommends \    
+    aptitude \
+    tmux \
+    tmuxp 
+
+COPY tmux.conf .tmux.conf
+
+# # PX4-Autopilot to fix git submodule update
+
+RUN  git config --global --add safe.directory '*'
+USER root
+
+## Realsense dependencies
+RUN apt-get update && apt-get upgrade && apt-get dist-upgrade \
+    && apt-get install libssl-dev libusb-1.0-0-dev libudev-dev pkg-config libgtk-3-dev \
+    && apt-get install libglfw3-dev libgl1-mesa-dev libglu1-mesa-dev at \
+    && git clone https://github.com/IntelRealSense/librealsense.git \
+    && cd librealsense && ./scripts/setup_udev_rules.sh \
+    
+
+RUN apt update && apt-get install -y --no-install-recommends \ 
+    ros-humble-octomap-rviz-plugins  \
+    ros-humble-rtabmap-ros \  
+    && rm -rf /var/lib/apt/lists/*
+
