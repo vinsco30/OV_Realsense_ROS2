@@ -6,7 +6,7 @@ xhost +
 
 
 # Run docker and open bash shell 
-docker run --rm -it --privileged \
+docker run -it --privileged \
 -v /tmp/.X11-unix:/tmp/.X11-unix:ro \
 -v "/dev:/dev" \
 -v $(pwd)/ros2_ws-src/pkg:/root/ros2_ws/src:rw \

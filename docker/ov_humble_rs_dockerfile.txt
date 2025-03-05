@@ -48,7 +48,7 @@ RUN mkdir -p ~/ros2_ws/src \
     && cd ~/ros2_ws/src \
     && git clone --single-branch -b release/1.14 https://github.com/PX4/px4_msgs.git \
     && git clone https://github.com/vinsco30/open_vins.git \
-    && git clone https://github.com/Prisma-Drone-Team/ov_republisher.git \
+#    && git clone https://github.com/Prisma-Drone-Team/ov_republisher.git \
     && cd .. \	
     && . /opt/ros/humble/setup.sh \
     && colcon build
